@@ -17,5 +17,17 @@
   "bugs": {
     "url": "https://github.com/mjfrancoeur/crypto-dashboard/issues"
   },
-  "homepage": "https://github.com/mjfrancoeur/crypto-dashboard#readme"
+  "homepage": "https://github.com/mjfrancoeur/crypto-dashboard#readme",
+  "dependencies": {
+    "express": "^4.15.4",
+    "knex": "^0.13.0",
+    "pg": "^7.2.0"
+  },
+  "devDependencies": {
+    "eslint": "^4.5.0",
+    "eslint-config-airbnb": "^15.1.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-jsx-a11y": "^5.1.1",
+    "eslint-plugin-react": "^7.3.0"
+  }
 }
