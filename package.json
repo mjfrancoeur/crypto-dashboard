@@ -6,7 +6,8 @@
   "scripts": {
     "test": "eslint",
     "start": "node server.js",
-    "knex": "knex"
+    "knex": "knex",
+    "postinstall": "knex migrate: latest"
   },
   "repository": {
     "type": "git",
