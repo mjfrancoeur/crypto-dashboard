@@ -1,4 +1,4 @@
-const APP_MODE = process.env.APP_MODE;
+const APP_MODE = process.env.APP_MODE || 'development';
 
 const config = require('./knexfile')[APP_MODE];
 
