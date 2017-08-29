@@ -1,5 +1,9 @@
 if (process.env.APP_MODE === undefined) {
-  throw Error('APP_MODE not set in application environment');
+  process.env.APP_MODE = require('dotenv').config();
+
+  if (process.env.APP_MODE === undefined) {
+    throw Error('APP_MODE not set in application environment');
+  }
 }
 
 module.exports = {
