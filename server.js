@@ -37,6 +37,11 @@ app.post('/login', (req, res) => {
   // Return array of users that match given email
   knex('users').where({ email: email })
     .then((users) => {
+      console.log(users);
+      // If query returns no users with given email
+      if (users.length === 0) {
+        return res.render('login', { error: 'Couldn\'t find a user with that email address.' });
+      }
       users.forEach((user) => {
         bcrypt.compare(password, user.password_digest)
           .then(() => {
@@ -50,10 +55,9 @@ app.post('/login', (req, res) => {
       });
     })
     .catch((err) => {
-      // If database query fails/returns no users with given email
-      // Reload login page again with error message
+      // If database query fails
       console.log(err);
-      res.render('/login', { error: 'Couldn\'t find a user with that email address.' });
+      res.sendStatus(500);
     });
 });
 
