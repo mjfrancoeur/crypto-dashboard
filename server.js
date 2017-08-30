@@ -1,8 +1,6 @@
-const knex = require('./db');
+const knex = require('./db'); // TODO: rename to DB
 
 const express = require('express');
-
-const app = express();
 
 const cookieSession = require('cookie-session');
 
@@ -12,13 +10,29 @@ const bcrypt = require('bcrypt-as-promised');
 
 const PORT = process.env.PORT || 8000;
 
+if (process.env.APP_MODE != 'production') {
+  require('dotenv').config();
+}
+
+const app = express();
+
 app.set('view engine', 'ejs');
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
 app.use(bodyParser.urlencoded({ extended: false }));
 
+// Cookie session middleware
+// Stores session data on the client within a cookie
+app.use(cookieSession({
+  name: 'session',
+  keys: [process.env.SECRET_ONE, process.env.SECRET_TWO]
+}));
+
 app.get('/', (req, res) => {
+  if (req.session.userID) {
+    return res.redirect(`/profile/${req.session.userID}`);
+  }
   res.render('home');
 });
 
@@ -31,6 +45,12 @@ app.get('/login', (req, res) => {
 // If valid, redirect to GET /profile
 app.post('/login', (req, res) => {
   // Grab data from request body (parsed by middleware)
+  //require('./UserRegistration')({ req: req, res: res })
+  //  .then((user) => {
+  //  })
+  //  .catch((err) => {
+  //  });
+
   const email = req.body.email;
   const password = req.body.password;
   // Verify login
@@ -46,7 +66,8 @@ app.post('/login', (req, res) => {
         bcrypt.compare(password, user.password_digest)
           .then(() => {
             // if password is correct
-            res.redirect(`/profile/${user.first_name}${user.last_name}`);
+            addSessionID(user, req);
+            res.redirect(`/profile/${user.user_id}`);
           })
           .catch((err) => {
             console.log(err);
@@ -63,6 +84,7 @@ app.post('/login', (req, res) => {
 
 // Render ./views/signup.ejs
 app.get('/signup', (req, res) => {
+  redirectIfLoggedIn(req, res);
   res.render('signup');
 });
 
@@ -81,10 +103,11 @@ app.post('/signup', (req, res) => {
         last_name: req.body.last_name,
         email: req.body.email,
         password_digest: pwDigest,
-      })
-        .then(() => {
+      }, '*')
+        .then((user) => {
           // if table insert completes
-          res.redirect(`/profile/${req.body.first_name}${req.body.last_name}`);
+          addSessionID(user, req);
+          res.redirect(`/profile/${user.user_id}`);
         })
         .catch((dbErr) => {
           // if table insert fails
@@ -105,6 +128,24 @@ app.get('/profile/:id', (req, res) => {
   res.render('profile');
 });
 
+// Log user out and redirect to homepage
+app.post('/logout', (req, res) => {
+  req.session = null;
+  res.redirect('/');
+});
+
 app.listen(PORT, () => {
   console.log('This server is listening to Fresh Air on WNYC port', PORT);
 });
+
+function addSessionID(user, req) {
+  req.session.userID = user.user_id;
+}
+
+// Redirects user to their profile page if logged in
+function redirectIfLoggedIn(req, res) {
+  if (req.session.userID) {
+    res.redirect(`/profile/${req.session.userID}`);
+  }
+}
+

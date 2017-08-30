@@ -7,10 +7,11 @@
   <body>
     <h1>Sign Up</h1>
     <form action='/signup' method='POST'>
-      <input type='text' name='email' placeholder='email'>
       <input type='text' name='first_name' placeholder='first name'>
       <input type='text' name='last_name' placeholder='last name'>
-      <input type='text' name='password' placeholder='password'>
+      <input type='email' name='email' placeholder='email'>
+      <input type='password' name='password' placeholder='password'>
+      <input type='password' name='password_confirmation' placeholder='password'>
     <button>Sign Up</button>
     </form>
     <form action='/' method='GET'>
