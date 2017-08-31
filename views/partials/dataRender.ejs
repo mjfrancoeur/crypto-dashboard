@@ -1,0 +1,25 @@
+<table class='table'>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Name</th>
+      <th>Market Cap</th>
+      <th>Price</th>
+      <th>Circulating Supply</th>
+      <th>% Change (24h)</th>
+    </tr>
+  </thead>
+  <tbody>
+  <% data.forEach((currency) => { %>
+    <tr>
+      <td><%=currency.rank%></td>
+      <td><%=currency.name%></td>
+      <td><%=currency.market_cap_usd%></td>
+      <td><%=currency.price_usd%></td>
+      <td><%=currency.available_supply%></td>
+      <td><%=currency.percent_change_2fh%></td>
+    </tr>
+  <% }); %>
+  </tbody>
+</table>
+
