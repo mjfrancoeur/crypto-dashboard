@@ -8,6 +8,8 @@ const bodyParser = require('body-parser');
 
 const bcrypt = require('bcrypt-as-promised');
 
+const makeRequest = require('./services/makeRequest');
+
 const PORT = process.env.PORT || 8000;
 
 if (process.env.APP_MODE != 'production') {
@@ -33,7 +35,14 @@ app.get('/', (req, res) => {
   if (req.session.userID) {
     return res.redirect(`/profile/${req.session.userID}`);
   }
-  res.render('home');
+  makeRequest()
+    .then((data) => {
+      res.render('home', { data: data, dataError: null });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.render('home', {data: null, dataError: err });
+    });
 });
 
 // Render ./views/login.ejs
@@ -44,12 +53,6 @@ app.get('/login', (req, res) => {
 // Verify login credentials
 // If valid, redirect to GET /profile
 app.post('/login', (req, res) => {
-  // Grab data from request body (parsed by middleware)
-  //require('./UserRegistration')({ req: req, res: res })
-  //  .then((user) => {
-  //  })
-  //  .catch((err) => {
-  //  });
 
   const email = req.body.email;
   const password = req.body.password;
