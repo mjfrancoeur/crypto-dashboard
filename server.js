@@ -12,7 +12,7 @@ const makeRequest = require('./services/makeRequest');
 
 const PORT = process.env.PORT || 8000;
 
-if (process.env.APP_MODE != 'production') {
+if (process.env.APP_MODE !== 'production') {
   require('dotenv').config();
 }
 
@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Stores session data on the client within a cookie
 app.use(cookieSession({
   name: 'session',
-  keys: [process.env.SECRET_ONE, process.env.SECRET_TWO]
+  keys: [process.env.SECRET_ONE, process.env.SECRET_TWO,]
 }));
 
 app.get('/', (req, res) => {
@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.render('home', {data: null, dataError: err });
+      res.render('home', { data: null, dataError: err });
     });
 });
 
