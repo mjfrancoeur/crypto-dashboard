@@ -22,6 +22,7 @@ app.set('view engine', 'ejs');
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
+
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Cookie session middleware
@@ -32,9 +33,6 @@ app.use(cookieSession({
 }));
 
 app.get('/', (req, res) => {
-  if (req.session.userID) {
-    return res.redirect(`/profile/${req.session.userID}`);
-  }
   makeRequest()
     .then((data) => {
       res.render('home', { data: data, dataError: null });
@@ -128,13 +126,22 @@ app.post('/signup', (req, res) => {
 // Direct user to their profile page
 // If user is logged in / authorized
 app.get('/profile/:id', (req, res) => {
-  res.render('profile');
+  res.render('profile', {data: null});
 });
 
 // Log user out and redirect to homepage
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/');
+});
+
+// Subscribe a user to currencies
+app.post('/currencies', (req, res) => {
+  if (!req.session.userID) {
+    res.render('login', { error: 'You need to be signed in to subscribe' });
+  }
+  console.log(req.body);
+  res.send(200);
 });
 
 app.listen(PORT, () => {
