@@ -8,9 +8,11 @@ const bodyParser = require('body-parser');
 
 const bcrypt = require('bcrypt-as-promised');
 
+const makeRequest = require('./services/makeRequest');
+
 const PORT = process.env.PORT || 8000;
 
-if (process.env.APP_MODE != 'production') {
+if (process.env.APP_MODE !== 'production') {
   require('dotenv').config();
 }
 
@@ -20,20 +22,25 @@ app.set('view engine', 'ejs');
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
+
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Cookie session middleware
 // Stores session data on the client within a cookie
 app.use(cookieSession({
   name: 'session',
-  keys: [process.env.SECRET_ONE, process.env.SECRET_TWO]
+  keys: [process.env.SECRET_ONE, process.env.SECRET_TWO,]
 }));
 
 app.get('/', (req, res) => {
-  if (req.session.userID) {
-    return res.redirect(`/profile/${req.session.userID}`);
-  }
-  res.render('home');
+  makeRequest()
+    .then((data) => {
+      res.render('home', { data: data, dataError: null });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.render('home', { data: null, dataError: err });
+    });
 });
 
 // Render ./views/login.ejs
@@ -44,12 +51,6 @@ app.get('/login', (req, res) => {
 // Verify login credentials
 // If valid, redirect to GET /profile
 app.post('/login', (req, res) => {
-  // Grab data from request body (parsed by middleware)
-  //require('./UserRegistration')({ req: req, res: res })
-  //  .then((user) => {
-  //  })
-  //  .catch((err) => {
-  //  });
 
   const email = req.body.email;
   const password = req.body.password;
@@ -125,13 +126,22 @@ app.post('/signup', (req, res) => {
 // Direct user to their profile page
 // If user is logged in / authorized
 app.get('/profile/:id', (req, res) => {
-  res.render('profile');
+  res.render('profile', {data: null});
 });
 
 // Log user out and redirect to homepage
 app.post('/logout', (req, res) => {
   req.session = null;
   res.redirect('/');
+});
+
+// Subscribe a user to currencies
+app.post('/currencies', (req, res) => {
+  if (!req.session.userID) {
+    res.render('login', { error: 'You need to be signed in to subscribe' });
+  }
+  console.log(req.body);
+  res.send(200);
 });
 
 app.listen(PORT, () => {

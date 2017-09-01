@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <%- include('./partials/head.ejs') %>
     <title>Profile</title>
   </head>
   <body>
@@ -9,5 +9,6 @@
     <form action='/logout' method='POST'>
       <button>Log Out</button>
     </form>
+    <%- include('./partials/dataRender.ejs', {data: data}) %>
   </body>
 </html>
