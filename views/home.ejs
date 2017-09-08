@@ -13,6 +13,10 @@
       <button>Login</button>
     </form>
 
+    <% if (dataError) { %>
+    <h3><%=dataError%></h3>
+    <% } %>
+
     <%- include('./partials/dataRender.ejs', {data: data}) %>
   </body>
 </html>

@@ -1,3 +1,4 @@
+// Require statements and constants
 const knex = require('./db'); // TODO: rename to DB
 
 const express = require('express');
@@ -18,11 +19,11 @@ if (process.env.APP_MODE !== 'production') {
 
 const app = express();
 
+// Set EJS templating
 app.set('view engine', 'ejs');
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
-
 app.use(bodyParser.urlencoded({ extended: false }));
 
 // Cookie session middleware
@@ -39,7 +40,7 @@ app.get('/', (req, res) => {
     })
     .catch((err) => {
       console.log(err);
-      res.render('home', { data: null, dataError: err });
+      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.'});
     });
 });
 
@@ -137,21 +138,59 @@ app.post('/logout', (req, res) => {
 
 // Subscribe a user to currencies
 app.post('/currencies', (req, res) => {
+  console.log(req.body.subscribe);
+  // If user is not logged in
   if (!req.session.userID) {
     res.render('login', { error: 'You need to be signed in to subscribe' });
   }
-  console.log(req.body);
-  res.send(200);
+  // Select user's current subscriptions
+  fetchSubscriptions(req.session.userID)
+    .then((user) => {
+      res.send(user);
+      // subscriptions requested
+      //  const requestedSubscriptions = req.body.subscribe;
+      //  let updatedSubscriptions = [];
+    
+      //  // If there are no current subscriptions
+      //  if (subscriptions.length === 0) {
+      //    updatedSubscriptions = requestedSubscriptions;
+      //  } else {
+      //    // Append requested subscriptions to current
+      //    updatedSubscriptions = subscriptions.concat(requestedSubscriptions);
+      //  }
+
+      //  res.send(updatedSubscriptions);
+
+      //        // TODO: Finish this insert
+      //  
+      //        // Insert into table (replacing current)
+      //          .then()
+      //            // redirect to profile page
+      //            res.redirect(`/profile/${req.session.userID}`);
+      //          .catch();
+    })
+    .catch((error) => {
+      console.log(error);
+      console.log('This is where it all failed');
+      res.sendStatus(500);
+    });
 });
 
+// Set server to listen on port PORT
 app.listen(PORT, () => {
   console.log('This server is listening to Fresh Air on WNYC port', PORT);
 });
 
+// Function: Add Session ID
+// ------------------------
+// Takes in a user object and a request.
+// Adds a userID proprety to req.sessions
 function addSessionID(user, req) {
   req.session.userID = user.user_id;
 }
 
+// Function: Redirect If Logged In
+// -------------------------------
 // Redirects user to their profile page if logged in
 function redirectIfLoggedIn(req, res) {
   if (req.session.userID) {
@@ -159,3 +198,27 @@ function redirectIfLoggedIn(req, res) {
   }
 }
 
+
+// Function: Fetch Subscriptions
+// -----------------------------
+// Takes in a string (userID) and returns a promise that 
+// resolves with any subscriptions that user has in the database
+// or rejects with an error.
+// TODO: verify that this function works
+function fetchSubscriptions(userID) {
+  return new Promise((resolve, reject) => {
+    // knex('users')
+    //   .join('subscriptions', 'users.email', '=', 'subscriptions.user_email')
+    //   .select('users.user_id, subscriptions.subscribed_currencies', 'subscriptions.user_email')
+    //   .limit(1)
+    knex.select('*').from('users').outerJoin('subscriptions', 'users.email', 'subscriptions.user_email')
+        .then((user) => {
+          console.log(user);
+          resolve(user);
+        })
+        .catch((error) => {
+          console.log('this failed.');
+          reject(error);
+        });
+  });
+}
