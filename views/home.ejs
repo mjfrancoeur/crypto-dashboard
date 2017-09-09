@@ -6,13 +6,18 @@
   </head>
   <body>
     <h1>Welcome to Crypto-Dashboard</h1>
+    <% if (!loggedIn) { %>
     <form action='/signup' method='GET'>
       <button>Sign Up</button>
     </form>
     <form action='/login' method='GET'>
       <button>Login</button>
     </form>
-
+    <% } else { %>
+    <form action='/logout' method='POST'>
+      <button>Logout</button>
+    </form>
+    <% } %>
     <% if (dataError) { %>
     <h3><%=dataError%></h3>
     <% } %>

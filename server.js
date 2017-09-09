@@ -36,11 +36,11 @@ app.use(cookieSession({
 app.get('/', (req, res) => {
   makeRequest()
     .then((data) => {
-      res.render('home', { data: data, dataError: null });
+      res.render('home', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID) });
     })
     .catch((err) => {
       console.log(err);
-      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.'});
+      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID)});
     });
 });
 
@@ -198,7 +198,6 @@ function redirectIfLoggedIn(req, res) {
   }
 }
 
-
 // Function: Fetch Subscriptions
 // -----------------------------
 // Takes in a string (userID) and returns a promise that 
@@ -221,4 +220,15 @@ function fetchSubscriptions(userID) {
           reject(error);
         });
   });
+}
+
+// Function: Is Logged In
+// ----------------------
+// Accepts the cookie session userID as an arg
+// Returns true if there is a session userID, false if the arg is null
+function isLoggedIn(sessionID) {
+  if (sessionID) {
+    return true;
+  }
+  return false;
 }
