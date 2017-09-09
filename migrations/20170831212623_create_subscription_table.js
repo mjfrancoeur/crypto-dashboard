@@ -3,7 +3,7 @@ exports.up = function(knex, Promise) {
   return knex.schema.createTable('subscriptions', (t) => {
     t.increments();
     t.string('user_email').notNullable().index();
-    t.json('subscribed_currencies');
+    t.integer('currency_id').index();
   });
 };
 
