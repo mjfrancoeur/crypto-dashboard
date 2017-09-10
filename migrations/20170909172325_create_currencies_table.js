@@ -2,7 +2,7 @@
 exports.up = function(knex, Promise) {
   return knex.schema.createTable('currencies', (t) => {
     t.increments('currency_id');
-    t.string('currency_name');
+    t.string('currency_name').index();
   });
 };
 
