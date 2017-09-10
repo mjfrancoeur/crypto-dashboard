@@ -145,21 +145,24 @@ app.post('/currencies', (req, res) => {
   }
   // Select user's current subscriptions
   fetchSubscriptions(req.session.userID)
-    .then((user) => {
-      res.send(user);
+    .then((subscribedCurrencies) => {
       // subscriptions requested
-      //  const requestedSubscriptions = req.body.subscribe;
-      //  let updatedSubscriptions = [];
+      const requestedSubscriptions = req.body.subscribe;
+      let updatedSubscriptions = [];
     
-      //  // If there are no current subscriptions
-      //  if (subscriptions.length === 0) {
-      //    updatedSubscriptions = requestedSubscriptions;
-      //  } else {
-      //    // Append requested subscriptions to current
-      //    updatedSubscriptions = subscriptions.concat(requestedSubscriptions);
-      //  }
+      // If there are no current subscriptions
+      if (subscribedCurrencies.length === 0) {
+        updatedSubscriptions = requestedSubscriptions;
+      } else {
+        // Append requested subscriptions to current
+        updatedSubscriptions = subscribedCurrencies.concat(requestedSubscriptions);
+      }
 
-      //  res.send(updatedSubscriptions);
+      // TODO: Remove duplicates
+      // Get Currency ID
+      // Insert into table
+
+      // Insert updated subscriptions into table
 
       //        // TODO: Finish this insert
       //  
@@ -201,25 +204,42 @@ function redirectIfLoggedIn(req, res) {
 // Function: Fetch Subscriptions
 // -----------------------------
 // Takes in a string (userID) and returns a promise that 
-// resolves with any subscriptions that user has in the database
+// resolves with an array of any currency subscriptions that user has in the database
 // or rejects with an error.
-// TODO: verify that this function works
 function fetchSubscriptions(userID) {
   return new Promise((resolve, reject) => {
-    // knex('users')
-    //   .join('subscriptions', 'users.email', '=', 'subscriptions.user_email')
-    //   .select('users.user_id, subscriptions.subscribed_currencies', 'subscriptions.user_email')
-    //   .limit(1)
-    knex.select('*').from('users').outerJoin('subscriptions', 'users.email', 'subscriptions.user_email')
-        .then((user) => {
-          console.log(user);
-          resolve(user);
+    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.user_id', 'subscriptions.user_id')
+      .join('currencies', 'subscriptions.currency_id', 'currencies.currency_id')
+        .then((currencies) => {
+          if (currencies.length === 0) {
+            resolve([]);
+          } else {
+            let arrCurrencies = currencies.map((currencyObj) => {
+              return currencyObj['currency_name'];
+            });
+            resolve(arrCurrencies);
+          }
         })
         .catch((error) => {
-          console.log('this failed.');
           reject(error);
         });
   });
+}
+
+// Function: Get Currency ID
+// -------------------------
+// Takes a currency abbreviation ('BTC', 'ETH', etc.) as a string
+// Returns the currency ID from the currencies table in the database
+// or -1 if not found/error.
+function getCurrencyID(currency) {
+  knex.select('currency_id').from('currencies').where({ currency: currency })
+    .then((currencyID) => {
+      return currencyID;
+    })
+    .catch((err) => {
+      console.log(err);
+      return -1;
+    });
 }
 
 // Function: Is Logged In
