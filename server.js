@@ -146,6 +146,7 @@ app.post('/currencies', (req, res) => {
   // Select user's current subscriptions
   fetchSubscriptions(req.session.userID)
     .then((subscribedCurrencies) => {
+      console.log('HEYYYYYYYY');
       // subscriptions requested
       const requestedSubscriptions = req.body.subscribe;
       let updatedSubscriptions = [];
@@ -168,8 +169,7 @@ app.post('/currencies', (req, res) => {
       //  
       //        // Insert into table (replacing current)
       //          .then()
-      //            // redirect to profile page
-      //            res.redirect(`/profile/${req.session.userID}`);
+      //            // redirect to profile page //            res.redirect(`/profile/${req.session.userID}`);
       //          .catch();
     })
     .catch((error) => {
@@ -208,19 +208,20 @@ function redirectIfLoggedIn(req, res) {
 // or rejects with an error.
 function fetchSubscriptions(userID) {
   return new Promise((resolve, reject) => {
-    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.user_id', 'subscriptions.user_id')
+    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.user_id', 'subscriptions.user_identification')
       .join('currencies', 'subscriptions.currency_id', 'currencies.currency_id')
         .then((currencies) => {
-          if (currencies.length === 0) {
-            resolve([]);
-          } else {
-            let arrCurrencies = currencies.map((currencyObj) => {
-              return currencyObj['currency_name'];
-            });
-            resolve(arrCurrencies);
-          }
+             if (currencies.length === 0) {
+               resolve([]);
+             } else {
+               let arrCurrencies = currencies.map((currencyObj) => {
+                 return currencyObj['currency_name'];
+               });
+               resolve(arrCurrencies);
+             }
         })
         .catch((error) => {
+          console.log('THIS IS WHERE we fail');
           reject(error);
         });
   });
