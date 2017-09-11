@@ -11,6 +11,8 @@ const bcrypt = require('bcrypt-as-promised');
 
 const makeRequest = require('./services/makeRequest');
 
+const methodOverride = require('method-override');
+
 const PORT = process.env.PORT || 8000;
 
 if (process.env.APP_MODE !== 'production') {
@@ -21,6 +23,7 @@ const app = express();
 
 // Set EJS templating
 app.set('view engine', 'ejs');
+
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
@@ -33,14 +36,24 @@ app.use(cookieSession({
   keys: [process.env.SECRET_ONE, process.env.SECRET_TWO,]
 }));
 
+// override with POST having ?_method=[METHOD]
+app.use(methodOverride((req, res) => {
+   // if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    // look in urlencoded POST bodies and delete it
+    var method = req.body._method
+    delete req.body._method
+    res.send(method);
+  // } 
+}));
+
 app.get('/', (req, res) => {
   makeRequest()
     .then((data) => {
-      res.render('home', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID) });
+      res.render('home', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'home' });
     })
     .catch((err) => {
       console.log(err);
-      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID)});
+      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'home'});
     });
 });
 
@@ -127,13 +140,19 @@ app.post('/signup', (req, res) => {
 // Direct user to their profile page
 // If user is logged in / authorized
 app.get('/profile/:id', (req, res) => {
-  makeRequest()
-    .then((data) => {
-      res.render('profile', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID) });
+  fetchSubscriptions(req.session.userID)
+    .then((subscriptions) => {
+    makeRequest()
+      .then((data) => {
+        res.render('profile', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions });
+      })
+      .catch((err) => {
+        console.log(err);
+        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions});
+      });
     })
     .catch((err) => {
-      console.log(err);
-      res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID)});
+        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: null});
     });
 });
 
@@ -178,6 +197,10 @@ app.post('/currencies', (req, res) => {
       console.log(error);
       res.sendStatus(500);
     });
+});
+
+app.patch('/currencies', (req, res) => {
+  res.send('patch');
 });
 
 // Set server to listen on port PORT
@@ -238,7 +261,6 @@ function getCurrencyID(currency) {
   knex.select('currency_id').from('currencies').where({ currency_name: currency }).first()
     .then((data) => {
       let currencyID = data.currency_id;
-      console.log('here the first id:',currencyID);
       resolve(currencyID);
     })
     .catch((err) => {
@@ -266,7 +288,6 @@ function insertSubscription(userID, currencyAbbrev) {
   // Get currency ID
   getCurrencyID(currencyAbbrev)
     .then((currencyID) => {
-  console.log('here\'s the id:', currencyID);
   if (currencyID !== -1) {
     knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
       .then()

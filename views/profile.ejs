@@ -12,6 +12,6 @@
     <form action='/logout' method='POST'>
       <button>Log Out</button>
     </form>
-    <%- include('./partials/dataRender.ejs', {data: data}) %>
+    <%- include('./partials/dataRender.ejs', {data: data, page: page, subscriptions: subscriptions}) %>
   </body>
 </html>

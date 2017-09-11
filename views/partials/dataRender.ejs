@@ -1,5 +1,9 @@
 <% if (data) { %>
+<% if (page === 'home') { %>
 <form method='post' action='/currencies'>
+<% } else { %>
+<form method='get' action='/currencies?_method=PATCH'>
+<% } %>
   <table class='table table-hover table-inverse'>
     <thead>
       <tr>
@@ -9,10 +13,15 @@
         <th>Price</th>
         <th>Circulating Supply</th>
         <th>% Change (24h)</th>
+        <% if (page === 'home') { %>
         <th>Click to follow</th>
+        <% } else { %>
+        <th>Click to unfollow</th>
+        <% } %>
       </tr>
     </thead>
     <tbody>
+<% if (page === 'home') { %>
     <% data.forEach((currency) => { %>
       <tr>
         <td><%=currency.rank%></td>
@@ -25,8 +34,29 @@
           <input type='checkbox' name='subscribe' value=<%=currency.symbol%>>
       </tr>
     <% }); %>
+<% } else {  %>
+    <% data.forEach((currency) => { %>
+      <% if (subscriptions && subscriptions.indexOf(currency.symbol) !== -1) { %>
+      <tr>
+        <td><%=currency.rank%></td>
+        <td><%=currency.name%></td>
+        <td><%=currency.market_cap_usd%></td>
+        <td><%=currency.price_usd%></td>
+        <td><%=currency.available_supply%></td>
+        <td><%=currency.percent_change_24h%></td>
+        <td>
+          <input type='checkbox' name='unsubscribe' value=<%=currency.symbol%>>
+      </tr>
+      <% } %>
+    <% }); %>
+  
+<% } %>
     </tbody>
   </table>
+  <% if (page === 'home') { %>
   <button>Subscribe to selected currencies</button>
+  <% } else { %>
+  <button>Unsubscribe from selected currencies</button>
+  <% } %>
 </form>
 <% } %>
