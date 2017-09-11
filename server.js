@@ -231,18 +231,20 @@ function fetchSubscriptions(userID) {
 // Function: Get Currency ID
 // -------------------------
 // Takes a currency abbreviation ('BTC', 'ETH', etc.) as a string
-// Returns the currency ID from the currencies table in the database
-// or -1 if not found/error.
+// Returns a promise that resolves with the currency ID from the currencies
+// table in the database.
 function getCurrencyID(currency) {
-  console.log(currency);
+  return new Promise((resolve, reject) => {
   knex.select('currency_id').from('currencies').where({ currency_name: currency }).first()
     .then((data) => {
-      return data['currency_id'];
+      let currencyID = data.currency_id;
+      console.log('here the first id:',currencyID);
+      resolve(currencyID);
     })
     .catch((err) => {
-      console.log(err);
-      return -1;
+      reject(err);
     });
+  });
 }
 
 // Function: Is Logged In
@@ -262,8 +264,9 @@ function isLoggedIn(sessionID) {
 // and inserts into the subscriptions table
 function insertSubscription(userID, currencyAbbrev) {
   // Get currency ID
-  const currencyID = getCurrencyID(currencyAbbrev);
-  console.log(currencyID);
+  getCurrencyID(currencyAbbrev)
+    .then((currencyID) => {
+  console.log('here\'s the id:', currencyID);
   if (currencyID !== -1) {
     knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
       .then()
@@ -275,4 +278,8 @@ function insertSubscription(userID, currencyAbbrev) {
     console.log('Could not find that currency');
     //TODO: throw error
   }
+    })
+    .catch((err) => {
+      return err;
+    });
 }
