@@ -82,7 +82,6 @@ app.post('/login', (req, res) => {
           .then(() => {
             // if password is correct
             addSessionID(user, req);
-            console.log('Here be the user: ', user);
             res.redirect(`/profile/${user.id}`);
           })
           .catch((err) => {
@@ -120,8 +119,9 @@ app.post('/signup', (req, res) => {
         email: req.body.email,
         password_digest: pwDigest,
       }, '*')
-        .then((user) => {
+        .then(([user]) => {
           // if table insert completes
+
           addSessionID(user, req);
           res.redirect(`/profile/${user.id}`);
         })
