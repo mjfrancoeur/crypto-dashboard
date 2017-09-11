@@ -101,7 +101,7 @@ app.post('/login', (req, res) => {
 // Render ./views/signup.ejs
 app.get('/signup', (req, res) => {
   redirectIfLoggedIn(req, res);
-  res.render('signup');
+  res.render('signup', {loggedIn: isLoggedIn(req.session.userID), page: null, userID: null});
 });
 
 // Verify that all necessary info has been input
