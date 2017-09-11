@@ -146,20 +146,18 @@ app.post('/currencies', (req, res) => {
   // Select user's current subscriptions
   fetchSubscriptions(req.session.userID)
     .then((subscribedCurrencies) => {
-      console.log('HEYYYYYYYY');
       // subscriptions requested
       const requestedSubscriptions = req.body.subscribe;
-      let updatedSubscriptions = [];
-    
-      // If there are no current subscriptions
-      if (subscribedCurrencies.length === 0) {
-        updatedSubscriptions = requestedSubscriptions;
-      } else {
-        // Append requested subscriptions to current
-        updatedSubscriptions = subscribedCurrencies.concat(requestedSubscriptions);
-      }
 
+      const newSubscriptions = requestedSubscriptions.filter((currency) => {
+        return subscribedCurrencies.indexOf(currency) === -1;
+      });
+      
       // TODO: Remove duplicates
+      // Insert subscriptions into table
+      //updatedSubscriptions.forEach((currencyAbbreviation) => {
+      //  insertSubscription(req.session.userID, currencyAbbreviation);
+      //});
       // Get Currency ID
       // Insert into table
 
@@ -208,7 +206,7 @@ function redirectIfLoggedIn(req, res) {
 // or rejects with an error.
 function fetchSubscriptions(userID) {
   return new Promise((resolve, reject) => {
-    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.user_id', 'subscriptions.user_identification')
+    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.id', 'subscriptions.user_id')
       .join('currencies', 'subscriptions.currency_id', 'currencies.currency_id')
         .then((currencies) => {
              if (currencies.length === 0) {
