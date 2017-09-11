@@ -173,7 +173,6 @@ app.post('/currencies', (req, res) => {
   fetchSubscriptions(req.session.userID)
     .then((subscribedCurrencies) => {
       // Add subscriptions requested to an array
-      // TODO: Update to get the value of multiple checked boxes
       let requestedSubscriptions = [];
       if (req.body.subscribe.length === 1) {
         requestedSubscriptions.push(req.body.subscribe);
@@ -193,7 +192,6 @@ app.post('/currencies', (req, res) => {
 
       Promise.all(promises)
         .then(() => {
-          // TODO: Upate insert subscriptions so that you wait for them to complete before rendering
           // send to profile page, which will populate with new subscriptions
           res.redirect(`/profile/${req.session.userID}`);
         })
@@ -219,29 +217,38 @@ app.delete('/currencies', (req, res) => {
     requestedCurrencies = req.body.unsubscribe;
   }
 
-  deleteCurrencies(req.session.userID, requestedCurrencies);
-  res.send('Work in progress');
+  const promises = requestedCurrencies.map((currency) => {
+    return deleteCurrency(req.session.userID, currency);
+  });
 
-  // Delete each requested currency from subscriptions table
-  //requestedCurrencies.forEach((currency) => {
-  //});
+  Promise.all(promises)
+    .then(() => {
+      res.redirect(`/profile/${req.session.userID}`);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.sendStatus(500);
+    });
 
 });
 
-function deleteCurrencies(userID, currenciesArr) {
+function deleteCurrency(userID, currency) {
   return new Promise((resolve, reject) => {
-    currenciesArr.forEach((currency) => {
       getCurrencyID(currency)
         .then((currencyID) => {
           knex('subscriptions')
             .where({ user_id: userID, currency_id: currencyID })
-            .del();
+            .del()
+              .then(() => {
+                resolve();
+              })
+              .catch((err) => {
+                reject(err);
+              });
         })
         .catch((err) => {
           reject(err);
         });
-    });
-    resolve(true);
   });
 }
 
