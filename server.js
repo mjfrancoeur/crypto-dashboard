@@ -127,7 +127,14 @@ app.post('/signup', (req, res) => {
 // Direct user to their profile page
 // If user is logged in / authorized
 app.get('/profile/:id', (req, res) => {
-  res.render('profile', {data: null});
+  makeRequest()
+    .then((data) => {
+      res.render('profile', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID) });
+    })
+    .catch((err) => {
+      console.log(err);
+      res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID)});
+    });
 });
 
 // Log user out and redirect to homepage
@@ -146,33 +153,29 @@ app.post('/currencies', (req, res) => {
   // Select user's current subscriptions
   fetchSubscriptions(req.session.userID)
     .then((subscribedCurrencies) => {
-      // subscriptions requested
-      const requestedSubscriptions = req.body.subscribe;
+      // Add subscriptions requested to an array
+      let requestedSubscriptions = [];
+      if (req.body.subscribe.length = 1) {
+        requestedSubscriptions.push(req.body.subscribe);
+      } else {
+        requestedSubscriptions = req.body.subscribe;
+      }
 
+      // Remove duplicates
       const newSubscriptions = requestedSubscriptions.filter((currency) => {
         return subscribedCurrencies.indexOf(currency) === -1;
       });
-      
-      // TODO: Remove duplicates
+
       // Insert subscriptions into table
-      //updatedSubscriptions.forEach((currencyAbbreviation) => {
-      //  insertSubscription(req.session.userID, currencyAbbreviation);
-      //});
-      // Get Currency ID
-      // Insert into table
+      newSubscriptions.forEach((currencyAbbreviation) => {
+        insertSubscription(req.session.userID, currencyAbbreviation);
+      });
 
-      // Insert updated subscriptions into table
-
-      //        // TODO: Finish this insert
-      //  
-      //        // Insert into table (replacing current)
-      //          .then()
-      //            // redirect to profile page //            res.redirect(`/profile/${req.session.userID}`);
-      //          .catch();
+      // send to profile page, which will populate with new subscriptions
+      res.redirect(`/profile/${req.session.userID}`);
     })
     .catch((error) => {
       console.log(error);
-      console.log('This is where it all failed');
       res.sendStatus(500);
     });
 });
@@ -231,9 +234,10 @@ function fetchSubscriptions(userID) {
 // Returns the currency ID from the currencies table in the database
 // or -1 if not found/error.
 function getCurrencyID(currency) {
-  knex.select('currency_id').from('currencies').where({ currency: currency })
-    .then((currencyID) => {
-      return currencyID;
+  console.log(currency);
+  knex.select('currency_id').from('currencies').where({ currency_name: currency }).first()
+    .then((data) => {
+      return data['currency_id'];
     })
     .catch((err) => {
       console.log(err);
@@ -250,4 +254,25 @@ function isLoggedIn(sessionID) {
     return true;
   }
   return false;
+}
+
+// Function: Insert Subscriptions
+// -----------------------------
+// Takes a user ID and a currency abbreviation (string) as arguments
+// and inserts into the subscriptions table
+function insertSubscription(userID, currencyAbbrev) {
+  // Get currency ID
+  const currencyID = getCurrencyID(currencyAbbrev);
+  console.log(currencyID);
+  if (currencyID !== -1) {
+    knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
+      .then()
+      .catch((err) => {
+        console.log(err);
+        return err;
+      });
+  } else {
+    console.log('Could not find that currency');
+    //TODO: throw error
+  }
 }
