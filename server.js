@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
 
 // Render ./views/login.ejs
 app.get('/login', (req, res) => {
-  res.render('login', { error: null,  loggedIn: isLoggedIn(req.session.userID), userID: req.session.userID });
+  res.render('login', { error: null,  loggedIn: isLoggedIn(req.session.userID), userID: req.session.userID, page: null });
 });
 
 // Verify login credentials
@@ -75,14 +75,15 @@ app.post('/login', (req, res) => {
       console.log(users);
       // If query returns no users with given email
       if (users.length === 0) {
-        return res.render('login', { error: 'Couldn\'t find a user with that email address.' });
+        return res.render('login', { error: 'Couldn\'t find a user with that email address.', loggedIn: isLoggedIn(req.session.userID), page: null, userID: null});
       }
       users.forEach((user) => {
         bcrypt.compare(password, user.password_digest)
           .then(() => {
             // if password is correct
             addSessionID(user, req);
-            res.redirect(`/profile/${req.session.userID}`);
+            console.log('Here be the user: ', user);
+            res.redirect(`/profile/${user.id}`);
           })
           .catch((err) => {
             console.log(err);
@@ -122,7 +123,7 @@ app.post('/signup', (req, res) => {
         .then((user) => {
           // if table insert completes
           addSessionID(user, req);
-          res.redirect(`/profile/${user.user_id}`);
+          res.redirect(`/profile/${user.id}`);
         })
         .catch((dbErr) => {
           // if table insert fails
@@ -213,7 +214,7 @@ app.listen(PORT, () => {
 // Takes in a user object and a request.
 // Adds a userID proprety to req.sessions
 function addSessionID(user, req) {
-  req.session.userID = user.user_id;
+  req.session.userID = user.id;
 }
 
 // Function: Redirect If Logged In
