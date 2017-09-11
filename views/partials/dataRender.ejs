@@ -2,7 +2,7 @@
 <% if (page === 'home') { %>
 <form method='post' action='/currencies'>
 <% } else { %>
-<form method='get' action='/currencies?_method=PATCH'>
+<form method='post' action='/currencies?_method=DELETE'>
 <% } %>
   <table class='table table-hover table-inverse'>
     <thead>
@@ -54,9 +54,9 @@
     </tbody>
   </table>
   <% if (page === 'home') { %>
-  <button>Subscribe to selected currencies</button>
+  <button class='btn'>Subscribe to selected currencies</button>
   <% } else { %>
-  <button>Unsubscribe from selected currencies</button>
+  <button class='btn'>Unsubscribe from selected currencies</button>
   <% } %>
 </form>
 <% } %>

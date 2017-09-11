@@ -37,14 +37,14 @@ app.use(cookieSession({
 }));
 
 // override with POST having ?_method=[METHOD]
-//app.use(methodOverride((req, res) => {
-//   // if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-//    // look in urlencoded POST bodies and delete it
-//    var method = req.body._method
-//    delete req.body._method
-//    return method;
-//  // } 
-//}));
+app.use(methodOverride((req, res, next) => {
+  if (req.query._method) {
+    const method = req.query._method;
+    delete req.query._method;
+    req.method = method;
+  }
+  next;
+}));
 
 app.get('/', (req, res) => {
   makeRequest()
@@ -165,7 +165,6 @@ app.post('/logout', (req, res) => {
 
 // Subscribe a user to currencies
 app.post('/currencies', (req, res) => {
-  console.log(req.body.subscribe);
   // If user is not logged in
   if (!req.session.userID) {
     res.render('login', { error: 'You need to be signed in to subscribe' });
@@ -174,8 +173,9 @@ app.post('/currencies', (req, res) => {
   fetchSubscriptions(req.session.userID)
     .then((subscribedCurrencies) => {
       // Add subscriptions requested to an array
+      // TODO: Update to get the value of multiple checked boxes
       let requestedSubscriptions = [];
-      if (req.body.subscribe.length = 1) {
+      if (req.body.subscribe.length === 1) {
         requestedSubscriptions.push(req.body.subscribe);
       } else {
         requestedSubscriptions = req.body.subscribe;
@@ -187,12 +187,20 @@ app.post('/currencies', (req, res) => {
       });
 
       // Insert subscriptions into table
-      newSubscriptions.forEach((currencyAbbreviation) => {
-        insertSubscription(req.session.userID, currencyAbbreviation);
+      const promises = newSubscriptions.map((currencyAbbreviation) => {
+        return insertSubscription(req.session.userID, currencyAbbreviation);
       });
 
-      // send to profile page, which will populate with new subscriptions
-      res.redirect(`/profile/${req.session.userID}`);
+      Promise.all(promises)
+        .then(() => {
+          // TODO: Upate insert subscriptions so that you wait for them to complete before rendering
+          // send to profile page, which will populate with new subscriptions
+          res.redirect(`/profile/${req.session.userID}`);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
     })
     .catch((error) => {
       console.log(error);
@@ -200,9 +208,42 @@ app.post('/currencies', (req, res) => {
     });
 });
 
-app.patch('/currencies', (req, res) => {
-  res.send('patch');
+// Unsubscribe from selected currencies
+app.delete('/currencies', (req, res) => {
+  // Turn req.body.unsubscribe into an array
+  let requestedCurrencies = [];
+  
+  if (typeof req.body.unsubscribe === 'string') {
+    requestedCurrencies.push(req.body.unsubscribe);
+  } else {
+    requestedCurrencies = req.body.unsubscribe;
+  }
+
+  deleteCurrencies(req.session.userID, requestedCurrencies);
+  res.send('Work in progress');
+
+  // Delete each requested currency from subscriptions table
+  //requestedCurrencies.forEach((currency) => {
+  //});
+
 });
+
+function deleteCurrencies(userID, currenciesArr) {
+  return new Promise((resolve, reject) => {
+    currenciesArr.forEach((currency) => {
+      getCurrencyID(currency)
+        .then((currencyID) => {
+          knex('subscriptions')
+            .where({ user_id: userID, currency_id: currencyID })
+            .del();
+        })
+        .catch((err) => {
+          reject(err);
+        });
+    });
+    resolve(true);
+  });
+}
 
 // Set server to listen on port PORT
 app.listen(PORT, () => {
@@ -284,24 +325,30 @@ function isLoggedIn(sessionID) {
 // Function: Insert Subscriptions
 // -----------------------------
 // Takes a user ID and a currency abbreviation (string) as arguments
-// and inserts into the subscriptions table
+// and returns a promise that resolves with successful
+// insert into the subscriptions table
 function insertSubscription(userID, currencyAbbrev) {
-  // Get currency ID
-  getCurrencyID(currencyAbbrev)
-    .then((currencyID) => {
-  if (currencyID !== -1) {
-    knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
-      .then()
+  return new Promise((resolve, reject) => {
+    // Get currency ID
+    getCurrencyID(currencyAbbrev)
+      .then((currencyID) => {
+    if (currencyID !== -1) {
+      knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
+        .then(() => {
+          resolve();
+        })
+        .catch((err) => {
+          console.log(err);
+          reject(err);
+        });
+    } else {
+      console.log('Could not find that currency');
+      reject();
+    }
+      })
       .catch((err) => {
-        console.log(err);
-        return err;
+        reject(err);
       });
-  } else {
-    console.log('Could not find that currency');
-    //TODO: throw error
-  }
-    })
-    .catch((err) => {
-      return err;
-    });
+  });
 }
+
