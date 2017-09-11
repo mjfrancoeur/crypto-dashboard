@@ -37,29 +37,29 @@ app.use(cookieSession({
 }));
 
 // override with POST having ?_method=[METHOD]
-app.use(methodOverride((req, res) => {
-   // if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-    // look in urlencoded POST bodies and delete it
-    var method = req.body._method
-    delete req.body._method
-    res.send(method);
-  // } 
-}));
+//app.use(methodOverride((req, res) => {
+//   // if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+//    // look in urlencoded POST bodies and delete it
+//    var method = req.body._method
+//    delete req.body._method
+//    return method;
+//  // } 
+//}));
 
 app.get('/', (req, res) => {
   makeRequest()
     .then((data) => {
-      res.render('home', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'home' });
+      res.render('home', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'home', userID: req.session.userID });
     })
     .catch((err) => {
       console.log(err);
-      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'home'});
+      res.render('home', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'home', userID: req.session.userID});
     });
 });
 
 // Render ./views/login.ejs
 app.get('/login', (req, res) => {
-  res.render('login', { error: null });
+  res.render('login', { error: null,  loggedIn: isLoggedIn(req.session.userID), userID: req.session.userID });
 });
 
 // Verify login credentials
@@ -82,7 +82,7 @@ app.post('/login', (req, res) => {
           .then(() => {
             // if password is correct
             addSessionID(user, req);
-            res.redirect(`/profile/${user.user_id}`);
+            res.redirect(`/profile/${req.session.userID}`);
           })
           .catch((err) => {
             console.log(err);
@@ -144,15 +144,15 @@ app.get('/profile/:id', (req, res) => {
     .then((subscriptions) => {
     makeRequest()
       .then((data) => {
-        res.render('profile', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions });
+        res.render('profile', { data: data, dataError: null, loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions, userID: req.session.userID });
       })
       .catch((err) => {
         console.log(err);
-        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions});
+        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: subscriptions,  userID: req.session.userID});
       });
     })
     .catch((err) => {
-        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: null});
+        res.render('profile', { data: null, dataError: 'Sorry, the dashboard can\'t be loaded at this time.', loggedIn: isLoggedIn(req.session.userID), page: 'profile', subscriptions: null,  userID: req.session.userID});
     });
 });
 

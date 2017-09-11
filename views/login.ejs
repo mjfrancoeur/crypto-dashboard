@@ -5,7 +5,8 @@
     <title>Login</title>
   </head>
   <body>
-    <h1>Login</h1>
+    <%- include('./partials/navbar.ejs', {loggedIn: loggedIn}) %>
+    <h3>Enter your email and password to log in</h3>
     <% if(error) { %>
       <h3><%=error%></h3>
       <% } %>
@@ -14,8 +15,9 @@
       <input type='text' name='password' placeholder='password'>
       <button>Login</button>
     </form>
-    <form action='/' method='GET'>
-      <button>Return Home</button>
+    <h3>If you don't have an account, sign up!</h3>
+    <form action='/signup' method='GET'>
+      <button>Click Here To Sign Up</button>
     </form>
   </body>
 </html>
