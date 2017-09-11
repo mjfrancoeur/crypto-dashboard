@@ -5,17 +5,27 @@
     <title>Login</title>
   </head>
   <body>
-    <h1>Login</h1>
+    <%- include('./partials/navbar.ejs', {loggedIn: loggedIn}) %>
+    <div class='container'>
+    <div class='input-form col-sm-8'>
     <% if(error) { %>
       <h3><%=error%></h3>
       <% } %>
     <form action='/login' method='POST'>
-      <input type='text' name='email' placeholder='email'>
-      <input type='text' name='password' placeholder='password'>
-      <button>Login</button>
+      <div class='form-group'>
+        <label for='inputEmail'>Email address</label>
+        <input type='text' class='form-control' id='inputEmail' name='email' placeholder='Enter email'>
+      </div>
+      <div class='form-group'>
+        <label for='inputPassword'>Password</label>
+        <input type='text' class='form-control' id='inputPassword' name='password' placeholder='Enter password'>
+      </div>
+      <button class='btn'>Log In</button>
     </form>
-    <form action='/' method='GET'>
-      <button>Return Home</button>
+    <form action='/signup' method='GET'>
+      <button class='btn btn-primary'>Or click here to create an account</button>
     </form>
+    </div>
+    </div>
   </body>
 </html>

@@ -5,17 +5,33 @@
     <title>Sign Up</title>
   </head>
   <body>
-    <h1>Sign Up</h1>
-    <form action='/signup' method='POST'>
-      <input type='text' name='first_name' placeholder='first name'>
-      <input type='text' name='last_name' placeholder='last name'>
-      <input type='email' name='email' placeholder='email'>
-      <input type='password' name='password' placeholder='password'>
-      <input type='password' name='password_confirmation' placeholder='password'>
-    <button>Sign Up</button>
-    </form>
-    <form action='/' method='GET'>
-      <button>Return Home</button>
-    </form>
+    <%- include('./partials/navbar.ejs', {loggedIn: loggedIn}) %>
+    <div class='container'>
+      <div class='input-form col-sm-8'>
+        <form action='/signup' method='POST'>
+          <div class='form-group'>
+            <label for='inputFirstName'>First name</label>
+            <input type='text' id='inputFirstName' name='first_name' placeholder='first name'>
+          </div>
+          <div class='form-group'>
+            <label for='inputLastName'>Last name</label>
+            <input type='text' id='inputLastName' name='last_name' placeholder='last name'>
+          </div>
+          <div class='form-group'>
+            <label for='inputEmail'>Email</label>
+            <input type='email' id='inputEmail' name='email' placeholder='email'>
+          </div>
+          <div class='form-group'>
+            <label for='inputPassword'>Password</label>
+            <input type='password' id='inputPassword' name='password' placeholder='password'>
+          </div>
+          <div class='form-group'>
+            <label for='inputPasswordConfirmation'>Password confirmation</label>
+            <input type='password' id='inputPasswordConfirmation' name='password_confirmation' placeholder='password'>
+          </div>
+        <button class='btn'>Sign Up</button>
+        </form>
+      </div>
+    </div>
   </body>
 </html>

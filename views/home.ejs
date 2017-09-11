@@ -2,16 +2,14 @@
 <html>
   <head>
     <%- include('./partials/head.ejs') %>
+    <link href='./../style.css' rel='stylesheet' type='text/css'>
     <title>Homepage</title>
   </head>
   <body>
-    <h1>Welcome to Crypto-Dashboard</h1>
-    <form action='/signup' method='GET'>
-      <button>Sign Up</button>
-    </form>
-    <form action='/login' method='GET'>
-      <button>Login</button>
-    </form>
+    <%- include('./partials/navbar.ejs', {loggedIn: loggedIn, userID: userID}) %>
+    <% if (dataError) { %>
+    <h3><%=dataError%></h3>
+    <% } %>
 
     <%- include('./partials/dataRender.ejs', {data: data}) %>
   </body>

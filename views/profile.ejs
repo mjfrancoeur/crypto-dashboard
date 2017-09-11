@@ -5,10 +5,7 @@
     <title>Profile</title>
   </head>
   <body>
-    <h1>Welcome to YOUR Crypto-Dashboard</h1>
-    <form action='/logout' method='POST'>
-      <button>Log Out</button>
-    </form>
-    <%- include('./partials/dataRender.ejs', {data: data}) %>
+    <%- include('./partials/navbar.ejs', {loggedIn: loggedIn, userID: userID}) %>
+    <%- include('./partials/dataRender.ejs', {data: data, page: page, subscriptions: subscriptions}) %>
   </body>
 </html>
