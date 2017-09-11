@@ -174,7 +174,8 @@ app.post('/currencies', (req, res) => {
     .then((subscribedCurrencies) => {
       // Add subscriptions requested to an array
       let requestedSubscriptions = [];
-      if (req.body.subscribe.length === 1) {
+      console.log(req.body.subscribe);
+      if (typeof req.body.subscribe === 'string') {
         requestedSubscriptions.push(req.body.subscribe);
       } else {
         requestedSubscriptions = req.body.subscribe;
