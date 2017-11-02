@@ -1,5 +1,5 @@
 // Require statements and constants
-const knex = require('./db'); // TODO: rename to DB
+const db = require('./db');
 
 const express = require('express');
 
@@ -23,7 +23,6 @@ const app = express();
 
 // Set EJS templating
 app.set('view engine', 'ejs');
-
 
 // parse application/x-www-form-urlencoded 
 // Adds to req.body
@@ -70,7 +69,7 @@ app.post('/login', (req, res) => {
   const password = req.body.password;
   // Verify login
   // Return array of users that match given email
-  knex('users').where({ email: email })
+  db('users').where({ email: email })
     .then((users) => {
       console.log(users);
       // If query returns no users with given email
@@ -113,7 +112,7 @@ app.post('/signup', (req, res) => {
   bcrypt.hash(password, 10)
     .then((pwDigest) => {
       // Attemp to add user info to database
-      knex('users').insert({
+      db('users').insert({
         first_name: req.body.first_name,
         last_name: req.body.last_name,
         email: req.body.email,
@@ -233,30 +232,13 @@ app.delete('/currencies', (req, res) => {
 
 });
 
-function deleteCurrency(userID, currency) {
-  return new Promise((resolve, reject) => {
-      getCurrencyID(currency)
-        .then((currencyID) => {
-          knex('subscriptions')
-            .where({ user_id: userID, currency_id: currencyID })
-            .del()
-              .then(() => {
-                resolve();
-              })
-              .catch((err) => {
-                reject(err);
-              });
-        })
-        .catch((err) => {
-          reject(err);
-        });
-  });
-}
 
 // Set server to listen on port PORT
 app.listen(PORT, () => {
   console.log('This server is listening to Fresh Air on WNYC port', PORT);
 });
+
+// ************************************************************************
 
 // Function: Add Session ID
 // ------------------------
@@ -282,7 +264,7 @@ function redirectIfLoggedIn(req, res) {
 // or rejects with an error.
 function fetchSubscriptions(userID) {
   return new Promise((resolve, reject) => {
-    knex.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.id', 'subscriptions.user_id')
+    db.select('currencies.currency_name').from('users').where({ user_id: userID }).join('subscriptions', 'users.id', 'subscriptions.user_id')
       .join('currencies', 'subscriptions.currency_id', 'currencies.currency_id')
         .then((currencies) => {
              if (currencies.length === 0) {
@@ -308,7 +290,7 @@ function fetchSubscriptions(userID) {
 // table in the database.
 function getCurrencyID(currency) {
   return new Promise((resolve, reject) => {
-  knex.select('currency_id').from('currencies').where({ currency_name: currency }).first()
+  db.select('currency_id').from('currencies').where({ currency_name: currency }).first()
     .then((data) => {
       let currencyID = data.currency_id;
       resolve(currencyID);
@@ -341,7 +323,7 @@ function insertSubscription(userID, currencyAbbrev) {
     getCurrencyID(currencyAbbrev)
       .then((currencyID) => {
     if (currencyID !== -1) {
-      knex('subscriptions').insert({ user_id: userID, currency_id: currencyID })
+      db('subscriptions').insert({ user_id: userID, currency_id: currencyID })
         .then(() => {
           resolve();
         })
@@ -360,3 +342,28 @@ function insertSubscription(userID, currencyAbbrev) {
   });
 }
 
+// Function: Delete Currency
+// -------------------------
+// Takes in a userID and a currency as arguments.
+// Returns a promise that resolves when the currency
+// is removed from the user's list of subscribed currencies.
+// Rejects with an error.
+function deleteCurrency(userID, currency) {
+  return new Promise((resolve, reject) => {
+      getCurrencyID(currency)
+        .then((currencyID) => {
+          db('subscriptions')
+            .where({ user_id: userID, currency_id: currencyID })
+            .del()
+              .then(() => {
+                resolve();
+              })
+              .catch((err) => {
+                reject(err);
+              });
+        })
+        .catch((err) => {
+          reject(err);
+        });
+  });
+}
