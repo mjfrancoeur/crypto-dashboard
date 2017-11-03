@@ -15,6 +15,10 @@ const methodOverride = require('method-override');
 
 const PORT = process.env.PORT || 8000;
 
+const Subscription = require('./models/Subscription');
+
+const Currency = require('./models/Currency');
+
 if (process.env.APP_MODE !== 'production') {
   require('dotenv').config();
 }
@@ -140,7 +144,7 @@ app.post('/signup', (req, res) => {
 // Direct user to their profile page
 // If user is logged in / authorized
 app.get('/profile/:id', (req, res) => {
-  fetchSubscriptions(req.session.userID)
+  Subscription.findByUserID(req.session.userID)
     .then((subscriptions) => {
     makeRequest()
       .then((data) => {
@@ -169,25 +173,39 @@ app.post('/currencies', (req, res) => {
     res.render('login', { error: 'You need to be signed in to subscribe' });
   }
   // Select user's current subscriptions
-  fetchSubscriptions(req.session.userID)
+  Subscription.findByUserID(req.session.userID)
     .then((subscribedCurrencies) => {
       // Add subscriptions requested to an array
       let requestedSubscriptions = [];
-      console.log(req.body.subscribe);
+      // If a single currency was selected:
       if (typeof req.body.subscribe === 'string') {
-        requestedSubscriptions.push(req.body.subscribe);
-      } else {
+
+        requestedSubscriptions.push(new Subscription({ currencyID: req.body.subscribe, userID: req.session.userID }));
+      } 
+      // If multiple currencies selected
+      else {
         requestedSubscriptions = req.body.subscribe;
       }
 
       // Remove duplicates
       const newSubscriptions = requestedSubscriptions.filter((currency) => {
         return subscribedCurrencies.indexOf(currency) === -1;
+
       });
 
+
+
       // Insert subscriptions into table
-      const promises = newSubscriptions.map((currencyAbbreviation) => {
-        return insertSubscription(req.session.userID, currencyAbbreviation);
+      const promises = newSubscriptions.map((currencyName) => {
+
+        Currency.findCurrencyIDByCurrencyName((currencyName) => {
+        })
+          .then((currencyID) => {
+            return new Subscription({ userID: req.session.userID, currencyID: currencyID }).save()
+          })
+          .catch((err) => {
+            console.log("Error w/ findCurrencyIDByCurrencyName", err);
+          });
       });
 
       Promise.all(promises)
