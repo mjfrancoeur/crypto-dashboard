@@ -9,7 +9,7 @@ class Currency {
   // Takes a currency name ("BTC", "ETH", etc)
   // as an argument and returns a promise that
   // resolves with the currency ID 
-  static findByCurrencyName(currencyName) {
+  static findCurrencyIDByCurrencyName(currencyName) {
     return new Promise((resolve, reject) => {
     db.select('currency_id').from('currencies').where({ currency_name: currencyName }).first()
       .then((data) => {

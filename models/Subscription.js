@@ -1,7 +1,7 @@
 class Subscription {
-  constructor({ userId, currencyId }) {
-    this.userId = userId;
-    this.currencyId = currencyId;
+  constructor({ userID, currencyID }) {
+    this.userID = userID;
+    this.currencyID = currencyID;
   }
 
   // Static Method: Find By UserID
